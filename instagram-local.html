@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Instagram Coverflow Demo</title>
+
+    <link rel="stylesheet" href="https://unpkg.com/swiper/swiper-bundle.css" />
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/swiper/swiper-bundle.min.css"
+    />
+    <script src="https://unpkg.com/swiper/swiper-bundle.js"></script>
+    <script src="https://unpkg.com/swiper/swiper-bundle.min.js"></script>
+    <style>
+
+      body {
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+      }
+
+      .swiper-container {
+
+        position: absolute;
+        top: 45%;
+        transform: translateY(-50%);
+
+        padding-top: 25px;
+        height: 410px;
+        width: 100%;
+        background-color: #f6f6f6;
+
+      }
+
+      .swiper-slide {
+        position: relative;
+        height: 360px;
+        width: 360px !important;
+        background-color: #fff;
+        border: 1px solid #aaa;
+      }
+
+      .swiper-slide .image-wrapper {
+        width: 320px;
+        height: 320px;
+        margin-left: 20px;
+        margin-top: 20px;
+        overflow: hidden;
+      }
+
+      .swiper-slide .image-wrapper img {
+        width: 320px;
+        position: relative;
+        top: 50%;
+        transform: translateY(-50%);
+      }
+
+      .swiper-pagination {
+        bottom: 20px !important;
+      }
+
+      .swiper-scrollbar {
+        height: 10px !important;
+      }
+
+      .swiper-scrollbar-drag {
+        background: #ccc;
+      }
+      
+    </style>
+  </head>
+  <body>
+    <!-- Slider main container -->
+    <div class="swiper-container">
+      <!-- Additional required wrapper -->
+      <div class="swiper-wrapper">
+        <!-- Slides -->
+
+      </div>
+      <!-- If we need pagination -->
+      <div class="swiper-pagination"></div>
+
+      <!-- If we need navigation buttons -->
+      <div class="swiper-button-prev"></div>
+      <div class="swiper-button-next"></div>
+
+      <!-- If we need scrollbar -->
+      <div class="swiper-scrollbar"></div>
+    </div>
+    <script>
+
+      (async function() {
+
+      let swiper = new Swiper(".swiper-container", {
+
+        // Coverflow parameters
+        effect: "coverflow",
+        coverflowEffect: {
+          rotate: 20,
+          stretch: 50,
+          depth: 100,
+          modifier: 1,
+          slideShadows: false,
+        },
+
+        // Optional parameters
+        slidesPerView: "auto",
+        spaceBetween: 0,
+        centeredSlides: true,
+        direction: "horizontal",
+        loop: false,
+
+        // If we need pagination
+        pagination: {
+          el: ".swiper-pagination",
+        },
+
+        // Navigation arrows
+        navigation: {
+          nextEl: ".swiper-button-next",
+          prevEl: ".swiper-button-prev",
+        },
+
+        // And if we need scrollbar
+        scrollbar: {
+          el: ".swiper-scrollbar",
+          draggable: true,
+        },
+
+        // Allow keyboard navigation
+        keyboard: {
+          enabled: true,
+          onlyInViewport: false,
+        },
+
+        // Allow mouse click navigation
+        slideToClickedSlide: true,
+
+        // Allow mousewheel navigation
+        mousewheel: true
+
+      });
+      
+      async function getImageURLs() {   
+        let insta = await fetch('./data/insta.json');
+        let json = await insta.json();
+        let items = json.graphql.hashtag.edge_hashtag_to_media.edges;
+        // get thumbnails of size 320x320 
+        let urls = items.map( item => item.node.thumbnail_resources[2].src );
+        return urls;
+      }
+
+      // get URLS from json (just 10 for now)
+      const urls =(await getImageURLs());//.slice(8, 18);
+
+      // create HTML for slides
+      const slides = urls.map( url => `<div class="swiper-slide"><div class="image-wrapper"><img src="${url}" /></div></div>` );
+
+      // add slides to the swiper
+      swiper.addSlide(1, slides);
+
+      // remove slides containing broken images (for whatever reason)
+      document.querySelectorAll('img').forEach(function(img){
+        img.onerror = function(){
+          img.parentElement.parentElement.remove();
+          swiper.update();
+        };
+      })
+
+      // referesh and go to the first slide
+      swiper.update();
+      swiper.slideTo(0);
+
+
+    })();
+
+    </script>
+  </body>
+</html>
